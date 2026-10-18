@@ -1,4 +1,4 @@
-
+from experiment_store import save_experiment
 import streamlit as st
 
 from llm_service import DEFAULT_MODEL
@@ -63,6 +63,8 @@ if st.button("Evaluate both prompts", type="primary"):
                     prompt=prompt_b,
                     model=model.strip(),
                 )
+                run_a_id = save_experiment(prompt_a, result_a)
+                run_b_id = save_experiment(prompt_b, result_b)
 
             st.session_state["score_comparison"] = {
                 "a": result_a,
@@ -150,4 +152,6 @@ if comparison:
         "before choosing a prompt; a single run does not establish "
         "reliable latency performance."
     )
-
+    st.success("Comparison completed and saved to SQLite.")
+    st.write(f"Prompt A experiment ID: {run_a_id}")
+    st.write(f"Prompt B experiment ID: {run_b_id}")
