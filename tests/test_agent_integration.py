@@ -40,9 +40,7 @@ def test_complete_workflow_with_approval(tmp_path, monkeypatch):
     monkeypatch.setattr(
         ticket_classifier,
         "run_inference",
-        lambda *args, **kwargs: fake_inference(
-            json.dumps(VALID_CLASSIFICATION)
-        ),
+        lambda *args, **kwargs: fake_inference(json.dumps(VALID_CLASSIFICATION)),
     )
 
     recommendation = process_ticket(
@@ -75,9 +73,7 @@ def test_complete_workflow_with_rejection(tmp_path, monkeypatch):
     monkeypatch.setattr(
         ticket_classifier,
         "run_inference",
-        lambda *args, **kwargs: fake_inference(
-            json.dumps(VALID_CLASSIFICATION)
-        ),
+        lambda *args, **kwargs: fake_inference(json.dumps(VALID_CLASSIFICATION)),
     )
 
     recommendation = process_ticket(

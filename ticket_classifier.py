@@ -62,7 +62,15 @@ def classify_ticket(
                 model=model,
                 system_prompt=CLASSIFIER_SYSTEM_PROMPT,
             )
-        except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+        except (
+            APIError,
+            AuthenticationError,
+            OpenAIError,
+            RateLimitError,
+            RuntimeError,
+            ValueError,
+            TypeError,
+        ) as exc:
             last_status = "inference_error"
             last_error = f"Inference failed: {exc}"
             continue
@@ -78,9 +86,7 @@ def classify_ticket(
             continue
 
         try:
-            classification: TicketClassification = (
-                validate_classification(parsed)
-            )
+            classification: TicketClassification = validate_classification(parsed)
         except ValueError as exc:
             last_status = "invalid_output"
             last_error = str(exc)

@@ -1,71 +1,18 @@
-# cli.py
 import argparse
 import json
-from typing import Any
+import logging
+from typing import Sequence
 
 from agent import process_ticket
 from approval import decide_approval
 from audit_log import list_events
-
-
-def print_json(data: dict[str, Any] | list[dict[str, Any]]) -> None:
-    """Print structured data in a readable format."""
-    print(json.dumps(data, indent=2, ensure_ascii=False))
-
-
-def handle_triage(args: argparse.Namespace) -> int:
-    recommendation = process_ticket(
-        ticket=args.ticket,
-        model=args.model,
-        ticket_id=args.ticket_id,
-    )
-
-    print("\n=== Classification recommendation ===")
-    print_json(recommendation)
-
-    if recommendation["status"] != "pending_approval":
-        print("\nManual review is required. No approval was recorded.")
-        return 1
-
-    answer = input("\nApprove this recommendation? [y/n]: ").strip().lower()
-
-    if answer not in {"y", "yes", "n", "no"}:
-        print("Invalid choice. No approval was recorded.")
-        return 2
-
-    decision = "approve" if answer in {"y", "yes"} else "reject"
-    reviewer = input("Reviewer identifier: ").strip()
-
-    if not reviewer:
-        print("Reviewer identifier is required. No decision was recorded.")
-        return 2
-
-    final_result = decide_approval(
-        recommendation,
-        decision=decision,
-        reviewer=reviewer,
-    )
-
-    print("\n=== Final decision ===")
-    print_json(final_result)
-    return 0
-
-
-def handle_history(args: argparse.Namespace) -> int:
-    events = list_events(
-        ticket_id=args.ticket_id,
-        limit=args.limit,
-    )
-
-    print("\n=== Audit history ===")
-    print_json(events)
-    return 0
+from metrics import build_metrics_report
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line interface."""
     parser = argparse.ArgumentParser(
-        prog="ticket-triage",
-        description="Classify support tickets and review recommendations.",
+        description="AI-assisted support ticket triage.",
     )
 
     subparsers = parser.add_subparsers(
@@ -73,6 +20,7 @@ def build_parser() -> argparse.ArgumentParser:
         required=True,
     )
 
+    # Triage a ticket and request human approval.
     triage_parser = subparsers.add_parser(
         "triage",
         help="Classify a ticket and request human approval.",
@@ -80,48 +28,131 @@ def build_parser() -> argparse.ArgumentParser:
     triage_parser.add_argument(
         "--ticket",
         required=True,
-        help="Customer support ticket text.",
+        help="Support ticket text.",
     )
     triage_parser.add_argument(
         "--model",
         required=True,
-        help="Model identifier configured for your inference service.",
+        help="Model identifier to use for classification.",
     )
     triage_parser.add_argument(
         "--ticket-id",
-        default=None,
-        help="Existing ticket ID; generated if omitted.",
+        help="Optional ticket identifier.",
     )
-    triage_parser.set_defaults(handler=handle_triage)
 
+    # View the audit history.
     history_parser = subparsers.add_parser(
         "history",
-        help="View persisted audit events.",
+        help="Display audit events.",
     )
     history_parser.add_argument(
         "--ticket-id",
-        default=None,
-        help="Filter events by ticket ID.",
+        help="Filter events by ticket identifier.",
     )
     history_parser.add_argument(
         "--limit",
         type=int,
         default=20,
-        help="Maximum number of events to display.",
+        help="Maximum number of events to display (default: 20).",
     )
-    history_parser.set_defaults(handler=handle_history)
+
+    # View operational metrics.
+    subparsers.add_parser(
+        "metrics",
+        help="Display operational metrics.",
+    )
 
     return parser
 
 
-def main(argv: list[str] | None = None) -> int:
+def run_triage(args: argparse.Namespace) -> int:
+    """Classify a ticket and collect the human decision."""
+    result = process_ticket(
+        ticket=args.ticket,
+        model=args.model,
+        ticket_id=args.ticket_id,
+    )
+
+    print(json.dumps(result, indent=2))
+
+    # Do not request approval when classification failed.
+    if result["status"] != "pending_approval":
+        return 1
+
+    while True:
+        decision = input("Approve this recommendation? [y/n]: ").strip().lower()
+
+        if decision in {"y", "yes"}:
+            decision = "approve"
+            break
+
+        if decision in {"n", "no"}:
+            decision = "reject"
+            break
+
+        print("Invalid choice. Enter y or n.")
+
+    reviewer = input("Reviewer identifier: ").strip()
+
+    if not reviewer:
+        print("Error: reviewer identifier cannot be empty.")
+        return 2
+
+    final_result = decide_approval(
+        agent_result=result,
+        decision=decision,
+        reviewer=reviewer,
+    )
+
+    print("\nFinal decision:")
+    print(json.dumps(final_result, indent=2))
+
+    return 0
+
+
+def run_history(args: argparse.Namespace) -> int:
+    """Display recent audit events."""
+    if args.limit < 1:
+        print("Error: --limit must be at least 1.")
+        return 2
+
+    events = list_events(
+        ticket_id=args.ticket_id,
+        limit=args.limit,
+    )
+
+    print(json.dumps(events, indent=2))
+    return 0
+
+
+def run_metrics() -> int:
+    """Display the operational metrics report."""
+    report = build_metrics_report()
+    print(json.dumps(report, indent=2))
+    return 0
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """CLI entry point."""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(message)s",
+    )
+
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    if hasattr(args, "limit") and args.limit < 1:
-        parser.error("--limit must be at least 1")
+    if args.command == "triage":
+        return run_triage(args)
 
-    return args.handler(args)
+    if args.command == "history":
+        return run_history(args)
+
+    if args.command == "metrics":
+        return run_metrics()
+
+    parser.error(f"Unknown command: {args.command}")
+    return 2
 
 
 if __name__ == "__main__":

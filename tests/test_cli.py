@@ -29,12 +29,17 @@ def test_triage_approves_recommendation(
     with (
         patch("builtins.input", side_effect=["y", "reviewer-1"]),
     ):
-        result = main([
-            "triage",
-            "--ticket", "My order #4821 has not arrived.",
-            "--model", "test-model",
-            "--ticket-id", "TICKET-001",
-        ])
+        result = main(
+            [
+                "triage",
+                "--ticket",
+                "My order #4821 has not arrived.",
+                "--model",
+                "test-model",
+                "--ticket-id",
+                "TICKET-001",
+            ]
+        )
 
     assert result == 0
     mock_decide.assert_called_once_with(
@@ -56,11 +61,15 @@ def test_failed_classification_does_not_request_approval(
     }
 
     with patch("builtins.input") as mock_input:
-        result = main([
-            "triage",
-            "--ticket", "My order is late.",
-            "--model", "test-model",
-        ])
+        result = main(
+            [
+                "triage",
+                "--ticket",
+                "My order is late.",
+                "--model",
+                "test-model",
+            ]
+        )
 
     assert result == 1
     mock_input.assert_not_called()
@@ -77,11 +86,15 @@ def test_history_displays_events(mock_list_events):
         }
     ]
 
-    result = main([
-        "history",
-        "--ticket-id", "TICKET-001",
-        "--limit", "10",
-    ])
+    result = main(
+        [
+            "history",
+            "--ticket-id",
+            "TICKET-001",
+            "--limit",
+            "10",
+        ]
+    )
 
     assert result == 0
     mock_list_events.assert_called_once_with(

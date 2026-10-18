@@ -75,9 +75,7 @@ def test_stops_after_max_attempts(mock_inference):
 
 @patch("ticket_classifier.run_inference")
 def test_success_on_first_attempt_does_not_retry(mock_inference):
-    mock_inference.return_value = fake_inference(
-        json.dumps(VALID_RESPONSE)
-    )
+    mock_inference.return_value = fake_inference(json.dumps(VALID_RESPONSE))
 
     result = classify_ticket(
         "My order #4821 has not arrived.",
