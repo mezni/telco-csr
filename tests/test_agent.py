@@ -74,3 +74,35 @@ def test_orchestrator_passes_retry_limit_to_classifier(mock_classifier):
         model="test-model",
         max_attempts=5,
     )
+
+
+@patch("agent.log_event")
+@patch("agent.classify_ticket")
+def test_success_waits_for_human_approval(
+    mock_classifier,
+    mock_log_event,
+):
+    mock_classifier.return_value = {
+        "status": "success",
+        "classification": {
+            "category": "order_status",
+            "order_id": 4821,
+            "needs_order_lookup": True,
+        },
+        "error": None,
+        "attempt_count": 1,
+        "model": "test-model",
+        "latency_ms": 100,
+        "input_tokens": 20,
+        "output_tokens": 15,
+    }
+
+    result = process_ticket(
+        "My order #4821 has not arrived.",
+        model="test-model",
+        ticket_id="TICKET-001",
+    )
+
+    assert result["status"] == "pending_approval"
+    assert result["ticket_id"] == "TICKET-001"
+    mock_log_event.assert_called_once()

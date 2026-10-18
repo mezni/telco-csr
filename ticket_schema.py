@@ -23,7 +23,7 @@ class TicketClassification:
 def validate_classification(data: Any) -> TicketClassification:
     """Validate untrusted classifier output and return a typed result."""
     if not isinstance(data, dict):
-        raise ValueError("Classification must be a JSON object.")
+        raise TypeError("Classification must be a JSON object.")
 
     required_fields = {
         "category",
@@ -60,7 +60,7 @@ def validate_classification(data: Any) -> TicketClassification:
             raise ValueError("order_id must be a positive integer.")
 
     if not isinstance(needs_order_lookup, bool):
-        raise ValueError("needs_order_lookup must be a boolean.")
+        raise TypeError("needs_order_lookup must be a boolean.")
 
     return TicketClassification(
         category=category,
