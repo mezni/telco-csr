@@ -1,24 +1,24 @@
+
+# ticket_classifier.py
+
 import json
 from typing import Any
 
-from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
-
+from errors import InferenceError
 from llm_service import run_inference
-from ticket_schema import TicketClassification, validate_classification
+from ticket_schema import validate_classification
+
 
 CLASSIFIER_SYSTEM_PROMPT = """
-You classify customer support tickets.
+Classify the support ticket.
 
-Return exactly one valid JSON object with these fields:
-- category: one of "order_status", "billing",
-  "technical_support", or "other"
-- order_id: a positive integer if an order ID is present,
-  otherwise null
-- needs_order_lookup: true if checking order information
-  is necessary, otherwise false
+Return only a JSON object with exactly these fields:
+- category: order_status, billing, technical_support, or other
+- order_id: a positive integer or null
+- needs_order_lookup: a boolean
 
-Do not include Markdown fences or explanatory text.
-Do not invent an order ID.
+Do not invent an order ID. Use null when no order ID is present.
+Do not include Markdown or explanatory text.
 """
 
 
@@ -27,8 +27,7 @@ def classify_ticket(
     model: str,
     max_attempts: int = 3,
 ) -> dict[str, Any]:
-    """Classify a ticket, retrying failures up to max_attempts."""
-
+    """Classify a ticket, retrying invalid model output only."""
     if not isinstance(ticket, str) or not ticket.strip():
         return {
             "status": "invalid_input",
@@ -51,8 +50,7 @@ def classify_ticket(
             "attempt_count": 0,
         }
 
-    last_status = "inference_error"
-    last_error = "Classification failed."
+    last_error = "The model returned invalid output."
     last_raw_response = None
 
     for attempt in range(1, max_attempts + 1):
@@ -62,33 +60,41 @@ def classify_ticket(
                 model=model,
                 system_prompt=CLASSIFIER_SYSTEM_PROMPT,
             )
-        except (
-            APIError,
-            AuthenticationError,
-            OpenAIError,
-            RateLimitError,
-            RuntimeError,
-            ValueError,
-            TypeError,
-        ) as exc:
-            last_status = "inference_error"
-            last_error = f"Inference failed: {exc}"
-            continue
 
-        raw_response = inference.get("response", "")
+        except InferenceError as exc:
+            return {
+                "status": "inference_error",
+                "classification": None,
+                "error": str(exc),
+                "raw_response": None,
+                "attempt_count": attempt,
+                "provider_attempts": exc.attempts,
+                "retryable": exc.retryable,
+                "status_code": exc.status_code,
+            }
+
+        except Exception:
+            # Unexpected failures should not trigger blind retries.
+            return {
+                "status": "inference_error",
+                "classification": None,
+                "error": "An unexpected inference error occurred.",
+                "raw_response": None,
+                "attempt_count": attempt,
+                "retryable": False,
+            }
+
+        raw_response = inference.get("response")
         last_raw_response = raw_response
 
         try:
-            parsed: Any = json.loads(raw_response)
-        except (json.JSONDecodeError, TypeError):
-            last_status = "invalid_output"
-            last_error = "The model response was not valid JSON."
-            continue
+            if not isinstance(raw_response, str):
+                raise ValueError("Model output must be a string.")
 
-        try:
-            classification: TicketClassification = validate_classification(parsed)
-        except ValueError as exc:
-            last_status = "invalid_output"
+            parsed = json.loads(raw_response)
+            classification = validate_classification(parsed)
+
+        except (json.JSONDecodeError, ValueError, TypeError) as exc:
             last_error = str(exc)
             continue
 
@@ -101,13 +107,15 @@ def classify_ticket(
             "latency_ms": inference.get("latency_ms"),
             "input_tokens": inference.get("input_tokens"),
             "output_tokens": inference.get("output_tokens"),
+            "provider_attempts": inference.get("provider_attempts", 1),
             "attempt_count": attempt,
         }
 
     return {
-        "status": last_status,
+        "status": "invalid_output",
         "classification": None,
         "error": last_error,
         "raw_response": last_raw_response,
         "attempt_count": max_attempts,
     }
+
