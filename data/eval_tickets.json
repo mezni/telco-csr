@@ -1,0 +1,49 @@
+
+[
+  {
+    "id": "T001",
+    "ticket": "My order #4821 has not arrived.",
+    "expected": {
+      "category": "order_status",
+      "order_id": 4821,
+      "needs_order_lookup": true
+    }
+  },
+  {
+    "id": "T002",
+    "ticket": "I was charged twice for my monthly bill.",
+    "expected": {
+      "category": "billing",
+      "order_id": null,
+      "needs_order_lookup": false
+    }
+  },
+  {
+    "id": "T003",
+    "ticket": "My mobile data connection keeps dropping.",
+    "expected": {
+      "category": "technical_support",
+      "order_id": null,
+      "needs_order_lookup": false
+    }
+  },
+  {
+    "id": "T004",
+    "ticket": "Where is order 7391? It is delayed.",
+    "expected": {
+      "category": "order_status",
+      "order_id": 7391,
+      "needs_order_lookup": true
+    }
+  },
+  {
+    "id": "T005",
+    "ticket": "How can I change my account profile picture?",
+    "expected": {
+      "category": "other",
+      "order_id": null,
+      "needs_order_lookup": false
+    }
+  }
+]
+
