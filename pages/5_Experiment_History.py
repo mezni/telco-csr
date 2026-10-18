@@ -1,6 +1,7 @@
 
 import pandas as pd
 import streamlit as st
+from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
 from experiment_store import get_experiment, list_experiments
 
@@ -22,7 +23,7 @@ st.write(
 
 try:
     experiments = list_experiments(limit=100)
-except Exception as exc:
+except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
     st.error(f"Could not load experiment history: {exc}")
     st.stop()
 
@@ -89,7 +90,7 @@ selected_id = experiment_options[selected_label]
 
 try:
     experiment = get_experiment(selected_id)
-except Exception as exc:
+except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
     st.error(f"Could not load experiment #{selected_id}: {exc}")
     st.stop()
 

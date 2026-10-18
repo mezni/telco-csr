@@ -1,6 +1,7 @@
 
-import streamlit as st
 import pandas as pd
+import streamlit as st
+from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
 from evaluator import load_dataset
 from experiment_store import save_experiment
@@ -51,8 +52,7 @@ system_prompt_b = st.text_area(
         '- "category": one allowed category\n'
         '- "order_id": an integer if an order number is explicitly mentioned, '
         "otherwise null\n"
-        '- "needs_order_lookup": true only when order information must be "
-        "retrieved to answer the customer, otherwise false\n\n"
+        '- "needs_order_lookup": true only when order information must be retrieved to answer the customer, otherwise false\n\n'
         "Do not invent customer or account information. "
         "Do not include Markdown fences or additional text."
     ),
@@ -150,7 +150,7 @@ if st.button("Run and save comparison", type="primary"):
             f"A = {experiment_id_a}, B = {experiment_id_b}."
         )
 
-    except Exception as exc:
+    except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
         st.error(f"Comparison failed: {exc}")
 
 

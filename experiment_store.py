@@ -7,6 +7,12 @@ from typing import Any
 
 from reproducibility import fingerprint_text
 
+
+def fingerprint_prompt(prompt: str) -> str:
+    """Return a SHA-256 fingerprint of the exact prompt text."""
+    return fingerprint_text(prompt)
+
+
 DB_PATH = Path(__file__).resolve().parent / "data" / "experiments.db"
 
 BASE_SCHEMA = """
