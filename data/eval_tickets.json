@@ -44,6 +44,55 @@
       "order_id": null,
       "needs_order_lookup": false
     }
+  },
+  {
+    "id": "T006",
+    "ticket": "I was charged twice for order #4821.",
+    "expected": {
+      "category": "billing",
+      "order_id": 4821,
+      "needs_order_lookup": false
+    },
+    "scenario": "billing_with_order_id"
+  },
+  {
+    "id": "T007",
+    "ticket": "Can you check the status of my order?",
+    "expected": {
+      "category": "order_status",
+      "order_id": null,
+      "needs_order_lookup": true
+    },
+    "scenario": "order_status_without_id"
+  },
+  {
+    "id": "T008",
+    "ticket": "My internet connection stopped working this morning.",
+    "expected": {
+      "category": "technical_support",
+      "order_id": null,
+      "needs_order_lookup": false
+    },
+    "scenario": "technical_issue_without_order"
+  },
+  {
+    "id": "T009",
+    "ticket": "I want to update the email address on my account.",
+    "expected": {
+      "category": "other",
+      "order_id": null,
+      "needs_order_lookup": false
+    },
+    "scenario": "account_change"
+  },
+  {
+    "id": "T010",
+    "ticket": "Order 7391 arrived, but the box contained the wrong item.",
+    "expected": {
+      "category": "order_status",
+      "order_id": 7391,
+      "needs_order_lookup": true
+    },
+    "scenario": "order_problem_after_delivery"
   }
 ]
-

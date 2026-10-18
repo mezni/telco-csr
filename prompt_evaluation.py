@@ -1,7 +1,7 @@
-
 import json
 from pathlib import Path
 
+from dataset_validation import validate_dataset
 from evaluator import score_prediction, summarize_scores
 from llm_service import run_inference
 
@@ -13,15 +13,29 @@ DATASET_PATH = (
 
 
 def load_dataset() -> list[dict]:
-    return json.loads(DATASET_PATH.read_text(encoding="utf-8"))
+    dataset = json.loads(DATASET_PATH.read_text(encoding="utf-8"))
 
+    errors = validate_dataset(dataset)
+    if errors:
+        raise ValueError(
+            "Evaluation dataset is invalid:\n- " + "\n- ".join(errors)
+        )
+
+    return dataset
 
 def run_prompt_evaluation(
     prompt: str,
     model: str,
     tickets: list[dict] | None = None,
 ) -> dict:
-    """Evaluate one prompt against a labeled dataset."""
+    dataset = tickets if tickets is not None else load_dataset()
+
+    errors = validate_dataset(dataset)
+    if errors:
+        raise ValueError(
+            "Evaluation dataset is invalid:\n- " + "\n- ".join(errors)
+        )
+
 
     dataset = tickets if tickets is not None else load_dataset()
     scores = []
