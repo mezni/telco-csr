@@ -2,7 +2,6 @@ from unittest.mock import patch
 
 from agent import process_ticket
 
-
 VALID_CLASSIFICATION = {
     "category": "order_status",
     "order_id": 4821,

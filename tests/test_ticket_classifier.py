@@ -3,7 +3,6 @@ from unittest.mock import patch
 
 from ticket_classifier import classify_ticket
 
-
 VALID_RESPONSE = {
     "category": "order_status",
     "order_id": 4821,
