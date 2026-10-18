@@ -1,4 +1,3 @@
-
 # tests/test_llm_service.py
 
 from types import SimpleNamespace
@@ -126,9 +125,7 @@ def setup_provider(monkeypatch):
 
 def test_success_on_first_attempt(setup_provider):
     install_client, sleep_calls = setup_provider
-    client, constructor_calls = install_client(
-        [make_response()]
-    )
+    client, constructor_calls = install_client([make_response()])
 
     result = llm_service.run_inference(
         "Test ticket",
@@ -236,9 +233,7 @@ def test_permanent_http_error_is_not_retried(
     setup_provider,
 ):
     install_client, sleep_calls = setup_provider
-    client, _ = install_client(
-        [status_error(401)]
-    )
+    client, _ = install_client([status_error(401)])
 
     with pytest.raises(InferenceError) as exc_info:
         llm_service.run_inference(
@@ -321,4 +316,3 @@ def test_backoff_is_capped_at_four_seconds(
     assert result["response"] == "recovered"
     assert len(client.responses.calls) == 5
     assert sleep_calls == [1, 2, 4, 4]
-

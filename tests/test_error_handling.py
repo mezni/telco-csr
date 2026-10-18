@@ -1,4 +1,3 @@
-
 import json
 
 import ticket_classifier
@@ -128,4 +127,3 @@ def test_invalid_input_does_not_call_provider(monkeypatch):
 
     assert result["status"] == "invalid_input"
     assert result["attempt_count"] == 0
-

@@ -1,4 +1,3 @@
-
 # errors.py
 
 
@@ -17,4 +16,3 @@ class InferenceError(Exception):
         self.retryable = retryable
         self.attempts = attempts
         self.status_code = status_code
-
