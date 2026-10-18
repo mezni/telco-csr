@@ -14,6 +14,8 @@ if not os.getenv("OPENAI_API_KEY"):
 
 client = OpenAI()
 
+MODEL = "gpt-6-luna"
+
 SYSTEM_PROMPT = """
 You are a telecom customer support assistant.
 Classify the customer's message into one category:
@@ -31,15 +33,26 @@ ticket = "My order #4821 has not arrived."
 start = time.perf_counter()
 
 response = client.responses.create(
-    model="gpt-6-luna",
+    model=MODEL,
     instructions=SYSTEM_PROMPT,
     input=ticket,
 )
 
-elapsed_ms = (time.perf_counter() - start) * 1000
+latency_ms = (time.perf_counter() - start) * 1000
+usage = response.usage
 
-print("Input:", ticket)
-print("\nModel response:")
+metrics = {
+    "model": MODEL,
+    "latency_ms": round(latency_ms, 2),
+    "input_tokens": usage.input_tokens if usage else None,
+    "output_tokens": usage.output_tokens if usage else None,
+    "total_tokens": usage.total_tokens if usage else None,
+}
+
+print("\n=== LLM RESPONSE ===")
 print(response.output_text)
-print(f"\nLatency: {elapsed_ms:.2f} ms")
+
+print("\n=== RUN METRICS ===")
+for name, value in metrics.items():
+    print(f"{name}: {value}")
 
