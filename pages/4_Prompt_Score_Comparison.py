@@ -1,9 +1,12 @@
-import streamlit as st
-from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
+import streamlit as st
+import pandas as pd
+
+from evaluator import load_dataset
 from experiment_store import save_experiment
 from llm_service import DEFAULT_MODEL, DEFAULT_SYSTEM_PROMPT
 from prompt_evaluation import run_prompt_evaluation
+from reproducibility import build_manifest
 
 st.set_page_config(
     page_title="Prompt Score Comparison",
@@ -12,361 +15,308 @@ st.set_page_config(
 )
 
 st.title("Prompt Score Comparison")
-st.caption(
-    "Evaluate two prompts against the same dataset and compare "
-    "accuracy, latency, and token usage."
+st.write(
+    "Compare two prompt versions using the same evaluation dataset. "
+    "Each run is saved with its prompt metadata and reproducibility manifest."
 )
 
-# --------------------------------------------------
-# Model configuration
-# --------------------------------------------------
+# -------------------------------------------------------------------
+# Configuration
+# -------------------------------------------------------------------
 
-model = st.text_input(
-    "Model",
-    value=DEFAULT_MODEL,
-    help="Use a model identifier supported by your API account.",
+model = st.text_input("Model", value=DEFAULT_MODEL.strip())
+
+st.subheader("Prompt A")
+prompt_name_a = st.text_input("Prompt A name", value="Baseline prompt")
+prompt_version_a = st.text_input("Prompt A version", value="v1")
+system_prompt_a = st.text_area(
+    "Prompt A instructions",
+    value=DEFAULT_SYSTEM_PROMPT.strip(),
+    height=240,
 )
 
-# --------------------------------------------------
-# Prompt metadata
-# --------------------------------------------------
-
-st.subheader("Prompt metadata")
-
-metadata_a, metadata_b = st.columns(2)
-
-with metadata_a:
-    prompt_name_a = st.text_input(
-        "Prompt A name",
-        value="baseline",
-        key="prompt_name_a",
-    )
-    prompt_version_a = st.text_input(
-        "Prompt A version",
-        value="v1",
-        key="prompt_version_a",
-    )
-
-with metadata_b:
-    prompt_name_b = st.text_input(
-        "Prompt B name",
-        value="structured-json",
-        key="prompt_name_b",
-    )
-    prompt_version_b = st.text_input(
-        "Prompt B version",
-        value="v1",
-        key="prompt_version_b",
-    )
-
-# --------------------------------------------------
-# Prompt editors
-# --------------------------------------------------
-
-st.subheader("System prompts")
-
-prompt_a, prompt_b = st.columns(2)
-
-with prompt_a:
-    st.markdown("### Prompt A")
-    system_prompt_a = st.text_area(
-        "System prompt A",
-        value=DEFAULT_SYSTEM_PROMPT,
-        height=280,
-        key="system_prompt_a",
-    )
-
-with prompt_b:
-    st.markdown("### Prompt B")
-    system_prompt_b = st.text_area(
-        "System prompt B",
-        value=(
-            "You are a telecom customer support ticket classifier.\n"
-            "Classify the customer's message into exactly one category:\n"
-            "- order_status\n"
-            "- billing\n"
-            "- technical_support\n"
-            "- other\n\n"
-            "Extract the order ID as an integer when present; otherwise "
-            "return null.\n"
-            "Set needs_order_lookup to true only when the ticket concerns "
-            "an order that needs to be looked up.\n\n"
-            "Return only a valid JSON object with exactly these fields:\n"
-            "{\n"
-            '  "category": "order_status",\n'
-            '  "order_id": 4821,\n'
-            '  "needs_order_lookup": true\n'
-            "}\n\n"
-            "Do not include Markdown fences or explanatory text. "
-            "Do not invent customer or account information."
-        ),
-        height=280,
-        key="system_prompt_b",
-    )
+st.subheader("Prompt B")
+prompt_name_b = st.text_input("Prompt B name", value="Improved prompt")
+prompt_version_b = st.text_input("Prompt B version", value="v2")
+system_prompt_b = st.text_area(
+    "Prompt B instructions",
+    value=(
+        "You are a telecom customer support ticket classifier.\n\n"
+        "Classify each customer message into exactly one category:\n"
+        "- order_status\n"
+        "- billing\n"
+        "- technical_support\n"
+        "- other\n\n"
+        "Return only valid JSON with these fields:\n"
+        '- "category": one allowed category\n'
+        '- "order_id": an integer if an order number is explicitly mentioned, '
+        "otherwise null\n"
+        '- "needs_order_lookup": true only when order information must be "
+        "retrieved to answer the customer, otherwise false\n\n"
+        "Do not invent customer or account information. "
+        "Do not include Markdown fences or additional text."
+    ),
+    height=240,
+)
 
 st.divider()
 
-# --------------------------------------------------
-# Run evaluation and save results
-# --------------------------------------------------
+# -------------------------------------------------------------------
+# Run and save comparison
+# -------------------------------------------------------------------
 
-if st.button(
-    "Run comparison",
-    type="primary",
-    width="stretch",
-):
+if st.button("Run and save comparison", type="primary"):
     if not model.strip():
-        st.error("Enter a model identifier.")
-    elif not system_prompt_a.strip() or not system_prompt_b.strip():
-        st.error("Both system prompts must be non-empty.")
-    elif not prompt_name_a.strip() or not prompt_name_b.strip():
-        st.error("Both prompt names must be non-empty.")
-    elif not prompt_version_a.strip() or not prompt_version_b.strip():
-        st.error("Both prompt versions must be non-empty.")
-    else:
-        try:
-            with st.spinner(
-                "Evaluating Prompt A and Prompt B. "
-                "This makes real LLM API calls..."
-            ):
-                result_a = run_prompt_evaluation(
-                    prompt=system_prompt_a,
-                    model=model.strip(),
-                )
+        st.error("Enter a model name.")
+        st.stop()
 
-                result_b = run_prompt_evaluation(
-                    prompt=system_prompt_b,
-                    model=model.strip(),
-                )
+    if not system_prompt_a.strip() or not system_prompt_b.strip():
+        st.error("Both prompts must contain instructions.")
+        st.stop()
 
-            # Persist both results only after both evaluations succeed.
-            run_a_id = save_experiment(
-                system_prompt_a,
-                result_a,
-                prompt_name=prompt_name_a.strip(),
-                prompt_version=prompt_version_a.strip(),
+    if not prompt_name_a.strip() or not prompt_name_b.strip():
+        st.error("Enter a name for each prompt.")
+        st.stop()
+
+    if not prompt_version_a.strip() or not prompt_version_b.strip():
+        st.error("Enter a version for each prompt.")
+        st.stop()
+
+    try:
+        with st.spinner("Loading evaluation dataset..."):
+            dataset = load_dataset()
+
+        if not dataset:
+            st.error("The evaluation dataset is empty.")
+            st.stop()
+
+        with st.spinner("Evaluating Prompt A..."):
+            result_a = run_prompt_evaluation(
+                prompt=system_prompt_a,
+                model=model.strip(),
+                tickets=dataset,
             )
 
-            run_b_id = save_experiment(
-                system_prompt_b,
-                result_b,
-                prompt_name=prompt_name_b.strip(),
-                prompt_version=prompt_version_b.strip(),
+        with st.spinner("Evaluating Prompt B..."):
+            result_b = run_prompt_evaluation(
+                prompt=system_prompt_b,
+                model=model.strip(),
+                tickets=dataset,
             )
 
-            st.session_state["score_comparison"] = {
-                "a": result_a,
-                "b": result_b,
-                "run_a_id": run_a_id,
-                "run_b_id": run_b_id,
-                "name_a": prompt_name_a.strip(),
-                "version_a": prompt_version_a.strip(),
-                "name_b": prompt_name_b.strip(),
-                "version_b": prompt_version_b.strip(),
-            }
+        # Build manifests from the same dataset used for each evaluation.
+        manifest_a = build_manifest(
+            prompt=system_prompt_a,
+            model=model.strip(),
+            dataset=dataset,
+        )
+        manifest_b = build_manifest(
+            prompt=system_prompt_b,
+            model=model.strip(),
+            dataset=dataset,
+        )
 
-            st.success(
-                f"Comparison completed and saved. "
-                f"Experiment IDs: #{run_a_id} and #{run_b_id}."
-            )
+        experiment_id_a = save_experiment(
+            prompt=system_prompt_a,
+            result=result_a,
+            prompt_name=prompt_name_a.strip(),
+            prompt_version=prompt_version_a.strip(),
+            manifest=manifest_a,
+        )
 
-        except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
-            st.error(f"Comparison failed: {exc}")
+        experiment_id_b = save_experiment(
+            prompt=system_prompt_b,
+            result=result_b,
+            prompt_name=prompt_name_b.strip(),
+            prompt_version=prompt_version_b.strip(),
+            manifest=manifest_b,
+        )
 
-# --------------------------------------------------
-# Display comparison results
-# --------------------------------------------------
+        st.session_state["prompt_comparison"] = {
+            "result_a": result_a,
+            "result_b": result_b,
+            "experiment_id_a": experiment_id_a,
+            "experiment_id_b": experiment_id_b,
+            "prompt_name_a": prompt_name_a.strip(),
+            "prompt_version_a": prompt_version_a.strip(),
+            "prompt_name_b": prompt_name_b.strip(),
+            "prompt_version_b": prompt_version_b.strip(),
+            "manifest_a": manifest_a,
+            "manifest_b": manifest_b,
+        }
 
-comparison = st.session_state.get("score_comparison")
+        st.success(
+            f"Comparison saved. Experiment IDs: "
+            f"A = {experiment_id_a}, B = {experiment_id_b}."
+        )
+
+    except Exception as exc:
+        st.error(f"Comparison failed: {exc}")
+
+
+# -------------------------------------------------------------------
+# Display results from the most recent comparison
+# -------------------------------------------------------------------
+
+comparison = st.session_state.get("prompt_comparison")
 
 if comparison:
-    result_a = comparison["a"]
-    result_b = comparison["b"]
+    result_a = comparison["result_a"]
+    result_b = comparison["result_b"]
+
+    st.divider()
+    st.header("Comparison Results")
+
+    st.caption(
+        f"Prompt A: {comparison['prompt_name_a']} "
+        f"({comparison['prompt_version_a']}) — "
+        f"experiment #{comparison['experiment_id_a']}"
+    )
+    st.caption(
+        f"Prompt B: {comparison['prompt_name_b']} "
+        f"({comparison['prompt_version_b']}) — "
+        f"experiment #{comparison['experiment_id_b']}"
+    )
 
     summary_a = result_a["summary"]
     summary_b = result_b["summary"]
 
-    st.divider()
-    st.subheader("Comparison results")
-
-    st.caption(
-        f"Saved experiments: #{comparison['run_a_id']} and "
-        f"#{comparison['run_b_id']}"
-    )
-
-    col_a, col_b = st.columns(2)
-
-    with col_a:
-        st.markdown(
-            f"### Prompt A: {comparison['name_a']} "
-            f"({comparison['version_a']})"
-        )
-        st.metric(
-            "Overall field accuracy",
-            f"{summary_a['overall_field_accuracy']:.1%}",
-        )
-
-    with col_b:
-        st.markdown(
-            f"### Prompt B: {comparison['name_b']} "
-            f"({comparison['version_b']})"
-        )
-        st.metric(
-            "Overall field accuracy",
-            f"{summary_b['overall_field_accuracy']:.1%}",
-        )
-
-    # All table values are strings to avoid mixed-type Arrow errors.
     metric_rows = [
         {
-            "Metric": "Model",
-            "Prompt A": str(result_a["model"]),
-            "Prompt B": str(result_b["model"]),
-        },
-        {
-            "Metric": "Tickets evaluated",
-            "Prompt A": str(result_a["ticket_count"]),
-            "Prompt B": str(result_b["ticket_count"]),
-        },
-        {
             "Metric": "Category accuracy",
-            "Prompt A": f"{summary_a['category_accuracy']:.1%}",
-            "Prompt B": f"{summary_b['category_accuracy']:.1%}",
+            "Prompt A": summary_a["category_accuracy"],
+            "Prompt B": summary_b["category_accuracy"],
+            "Difference (B - A)": (
+                summary_b["category_accuracy"]
+                - summary_a["category_accuracy"]
+            ),
+            "Direction": "Higher is better",
         },
         {
             "Metric": "Order ID accuracy",
-            "Prompt A": f"{summary_a['order_id_accuracy']:.1%}",
-            "Prompt B": f"{summary_b['order_id_accuracy']:.1%}",
+            "Prompt A": summary_a["order_id_accuracy"],
+            "Prompt B": summary_b["order_id_accuracy"],
+            "Difference (B - A)": (
+                summary_b["order_id_accuracy"]
+                - summary_a["order_id_accuracy"]
+            ),
+            "Direction": "Higher is better",
         },
         {
             "Metric": "Lookup accuracy",
-            "Prompt A": f"{summary_a['lookup_accuracy']:.1%}",
-            "Prompt B": f"{summary_b['lookup_accuracy']:.1%}",
+            "Prompt A": summary_a["lookup_accuracy"],
+            "Prompt B": summary_b["lookup_accuracy"],
+            "Difference (B - A)": (
+                summary_b["lookup_accuracy"]
+                - summary_a["lookup_accuracy"]
+            ),
+            "Direction": "Higher is better",
         },
         {
             "Metric": "Overall field accuracy",
-            "Prompt A": f"{summary_a['overall_field_accuracy']:.1%}",
-            "Prompt B": f"{summary_b['overall_field_accuracy']:.1%}",
+            "Prompt A": summary_a["overall_field_accuracy"],
+            "Prompt B": summary_b["overall_field_accuracy"],
+            "Difference (B - A)": (
+                summary_b["overall_field_accuracy"]
+                - summary_a["overall_field_accuracy"]
+            ),
+            "Direction": "Higher is better",
         },
         {
             "Metric": "Average latency (ms)",
-            "Prompt A": f"{result_a['average_latency_ms']:.2f}",
-            "Prompt B": f"{result_b['average_latency_ms']:.2f}",
+            "Prompt A": result_a["average_latency_ms"],
+            "Prompt B": result_b["average_latency_ms"],
+            "Difference (B - A)": (
+                result_b["average_latency_ms"]
+                - result_a["average_latency_ms"]
+            ),
+            "Direction": "Lower is better",
         },
         {
-            "Metric": "Input tokens",
-            "Prompt A": str(result_a["total_input_tokens"]),
-            "Prompt B": str(result_b["total_input_tokens"]),
+            "Metric": "Total input tokens",
+            "Prompt A": result_a["total_input_tokens"],
+            "Prompt B": result_b["total_input_tokens"],
+            "Difference (B - A)": (
+                result_b["total_input_tokens"]
+                - result_a["total_input_tokens"]
+            ),
+            "Direction": "Lower is generally cheaper",
         },
         {
-            "Metric": "Output tokens",
-            "Prompt A": str(result_a["total_output_tokens"]),
-            "Prompt B": str(result_b["total_output_tokens"]),
+            "Metric": "Total output tokens",
+            "Prompt A": result_a["total_output_tokens"],
+            "Prompt B": result_b["total_output_tokens"],
+            "Difference (B - A)": (
+                result_b["total_output_tokens"]
+                - result_a["total_output_tokens"]
+            ),
+            "Direction": "Lower is generally cheaper",
         },
     ]
 
     st.dataframe(
-        metric_rows,
+        pd.DataFrame(metric_rows),
         hide_index=True,
         width="stretch",
     )
 
-    # --------------------------------------------------
-    # Per-ticket results
-    # --------------------------------------------------
-
+    # Per-ticket comparison
     st.subheader("Per-ticket results")
 
     details_a = {
-        item["id"]: item for item in result_a["details"]
+        item["id"]: item for item in result_a.get("details", [])
     }
     details_b = {
-        item["id"]: item for item in result_b["details"]
+        item["id"]: item for item in result_b.get("details", [])
     }
 
-    detail_rows = []
+    ticket_rows = []
 
-    for ticket_id in dict.fromkeys(
-        list(details_a.keys()) + list(details_b.keys())
-    ):
-        item_a = details_a.get(ticket_id)
-        item_b = details_b.get(ticket_id)
+    for ticket_id in sorted(set(details_a) | set(details_b)):
+        item_a = details_a.get(ticket_id, {})
+        item_b = details_b.get(ticket_id, {})
 
-        detail_rows.append(
+        predicted_a = item_a.get("predicted", {})
+        predicted_b = item_b.get("predicted", {})
+        scores_a = item_a.get("scores", {})
+        scores_b = item_b.get("scores", {})
+
+        ticket_rows.append(
             {
                 "Ticket ID": ticket_id,
-                "Prompt A category": (
-                    str(item_a["predicted"].get("category"))
-                    if item_a
-                    else "Not evaluated"
+                "Ticket": item_a.get("ticket", item_b.get("ticket", "")),
+                "Expected category": item_a.get("expected", {}).get(
+                    "category", ""
                 ),
-                "Prompt A correct": (
-                    str(all(item_a["scores"].values()))
-                    if item_a
-                    else "N/A"
+                "A category": predicted_a.get("category", "INVALID"),
+                "B category": predicted_b.get("category", "INVALID"),
+                "A category correct": scores_a.get(
+                    "category_correct", False
                 ),
-                "Prompt B category": (
-                    str(item_b["predicted"].get("category"))
-                    if item_b
-                    else "Not evaluated"
+                "B category correct": scores_b.get(
+                    "category_correct", False
                 ),
-                "Prompt B correct": (
-                    str(all(item_b["scores"].values()))
-                    if item_b
-                    else "N/A"
-                ),
+                "A order ID": predicted_a.get("order_id"),
+                "B order ID": predicted_b.get("order_id"),
+                "A lookup correct": scores_a.get("lookup_correct", False),
+                "B lookup correct": scores_b.get("lookup_correct", False),
+                "A JSON error": item_a.get("parse_error") or "",
+                "B JSON error": item_b.get("parse_error") or "",
             }
         )
 
     st.dataframe(
-        detail_rows,
+        pd.DataFrame(ticket_rows),
         hide_index=True,
         width="stretch",
     )
 
-    # --------------------------------------------------
-    # Interpretation
-    # --------------------------------------------------
+    # Reproducibility information
+    st.subheader("Reproducibility manifests")
 
-    st.subheader("Interpretation")
+    with st.expander("Prompt A manifest"):
+        st.json(comparison["manifest_a"])
 
-    accuracy_difference = (
-        summary_b["overall_field_accuracy"]
-        - summary_a["overall_field_accuracy"]
-    )
+    with st.expander("Prompt B manifest"):
+        st.json(comparison["manifest_b"])
 
-    latency_difference = (
-        result_b["average_latency_ms"]
-        - result_a["average_latency_ms"]
-    )
-
-    if accuracy_difference > 0:
-        st.write(
-            f"Prompt B improved overall field accuracy by "
-            f"{accuracy_difference:.1%} relative to Prompt A."
-        )
-    elif accuracy_difference < 0:
-        st.write(
-            f"Prompt B reduced overall field accuracy by "
-            f"{abs(accuracy_difference):.1%} relative to Prompt A."
-        )
-    else:
-        st.write("Both prompts achieved the same overall field accuracy.")
-
-    if latency_difference > 0:
-        st.write(
-            f"Prompt B was {latency_difference:.2f} ms slower on average."
-        )
-    elif latency_difference < 0:
-        st.write(
-            f"Prompt B was {abs(latency_difference):.2f} ms faster on average."
-        )
-    else:
-        st.write("Both prompts had the same average latency.")
-
-    st.caption(
-        "These results apply only to the evaluated dataset. "
-        "Overall field accuracy weights category, order ID, and lookup "
-        "correctness equally. Latency can vary with network conditions "
-        "and model load."
-    )
