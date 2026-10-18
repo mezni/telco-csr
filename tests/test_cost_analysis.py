@@ -1,4 +1,3 @@
-
 import pytest
 
 from cost_analysis import (
@@ -79,4 +78,3 @@ def test_analyze_experiment():
     assert result["cost_per_ticket_usd"] == pytest.approx(0.09)
     assert result["total_tokens"] == 120_000
     assert result["median_latency_ms"] == 200
-

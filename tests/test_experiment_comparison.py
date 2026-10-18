@@ -40,12 +40,8 @@ def test_detects_latency_regression():
 
 
 def test_detects_token_reduction():
-    baseline = make_experiment(
-        1, accuracy=0.80, latency=800, input_tokens=500
-    )
-    candidate = make_experiment(
-        2, accuracy=0.80, latency=800, input_tokens=350
-    )
+    baseline = make_experiment(1, accuracy=0.80, latency=800, input_tokens=500)
+    candidate = make_experiment(2, accuracy=0.80, latency=800, input_tokens=350)
 
     result = compare_experiments(baseline, candidate)
 

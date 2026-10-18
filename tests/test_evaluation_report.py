@@ -1,4 +1,3 @@
-
 from evaluation_report import build_evaluation_report
 
 
@@ -113,4 +112,3 @@ def test_report_flags_invalid_json():
     assert "**Gate status: FAIL**" in report
     assert "invalid_json" in report
     assert "Invalid JSON response" in report
-

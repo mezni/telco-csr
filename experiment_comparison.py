@@ -36,15 +36,11 @@ def compare_experiments(
         }
 
     regressions = [
-        metric
-        for metric, result in comparisons.items()
-        if result["regressed"]
+        metric for metric, result in comparisons.items() if result["regressed"]
     ]
 
     improvements = [
-        metric
-        for metric, result in comparisons.items()
-        if result["improved"]
+        metric for metric, result in comparisons.items() if result["improved"]
     ]
 
     return {

@@ -19,10 +19,12 @@ def test_valid_dataset_has_no_errors():
 
 
 def test_duplicate_ids_are_rejected():
-    errors = validate_dataset([
-        valid_ticket("T001"),
-        valid_ticket("T001"),
-    ])
+    errors = validate_dataset(
+        [
+            valid_ticket("T001"),
+            valid_ticket("T001"),
+        ]
+    )
 
     assert any("duplicate id" in error for error in errors)
 

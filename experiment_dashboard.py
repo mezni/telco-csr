@@ -13,15 +13,11 @@ def prepare_dashboard_data(experiments: list[dict]) -> list[dict]:
                 "Order ID accuracy (%)": round(
                     experiment["order_id_accuracy"] * 100, 2
                 ),
-                "Lookup accuracy (%)": round(
-                    experiment["lookup_accuracy"] * 100, 2
-                ),
+                "Lookup accuracy (%)": round(experiment["lookup_accuracy"] * 100, 2),
                 "Overall accuracy (%)": round(
                     experiment["overall_field_accuracy"] * 100, 2
                 ),
-                "Average latency (ms)": round(
-                    experiment["average_latency_ms"], 2
-                ),
+                "Average latency (ms)": round(experiment["average_latency_ms"], 2),
                 "Input tokens": experiment["total_input_tokens"],
                 "Output tokens": experiment["total_output_tokens"],
             }

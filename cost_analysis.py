@@ -1,4 +1,3 @@
-
 def estimate_cost(
     input_tokens: int,
     output_tokens: int,
@@ -98,13 +97,10 @@ def analyze_experiment(
         **analyze_performance(latencies),
         "ticket_count": ticket_count,
         "cost_per_ticket_usd": (
-            cost["total_cost_usd"] / ticket_count
-            if ticket_count > 0
-            else 0.0
+            cost["total_cost_usd"] / ticket_count if ticket_count > 0 else 0.0
         ),
         "total_tokens": (
             experiment.get("total_input_tokens", 0)
             + experiment.get("total_output_tokens", 0)
         ),
     }
-

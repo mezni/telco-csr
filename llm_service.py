@@ -1,4 +1,3 @@
-
 import os
 import time
 
@@ -51,4 +50,3 @@ def run_inference(
         "output_tokens": usage.output_tokens if usage else None,
         "total_tokens": usage.total_tokens if usage else None,
     }
-

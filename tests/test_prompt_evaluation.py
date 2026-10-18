@@ -1,4 +1,3 @@
-
 from unittest.mock import patch
 
 from prompt_evaluation import run_prompt_evaluation
@@ -20,9 +19,7 @@ def test_prompt_evaluation_scores_mocked_responses():
     mocked_run = {
         "model": "test-model",
         "response": (
-            '{"category": "order_status", '
-            '"order_id": 4821, '
-            '"needs_order_lookup": true}'
+            '{"category": "order_status", "order_id": 4821, "needs_order_lookup": true}'
         ),
         "latency_ms": 120.0,
         "input_tokens": 20,
@@ -48,4 +45,3 @@ def test_prompt_evaluation_scores_mocked_responses():
     assert result["total_input_tokens"] == 20
     assert result["total_output_tokens"] == 12
     mock_inference.assert_called_once()
-

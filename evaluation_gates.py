@@ -8,27 +8,19 @@ def evaluate_gates(
     """Check whether an experiment satisfies evaluation requirements."""
 
     invalid_json_count = sum(
-        1
-        for detail in experiment.get("details", [])
-        if detail.get("parse_error")
+        1 for detail in experiment.get("details", []) if detail.get("parse_error")
     )
 
     checks = {
         "overall_accuracy": {
             "actual": experiment["overall_field_accuracy"],
             "threshold": min_overall_accuracy,
-            "passed": (
-                experiment["overall_field_accuracy"]
-                >= min_overall_accuracy
-            ),
+            "passed": (experiment["overall_field_accuracy"] >= min_overall_accuracy),
         },
         "category_accuracy": {
             "actual": experiment["category_accuracy"],
             "threshold": min_category_accuracy,
-            "passed": (
-                experiment["category_accuracy"]
-                >= min_category_accuracy
-            ),
+            "passed": (experiment["category_accuracy"] >= min_category_accuracy),
         },
         "latency": {
             "actual": experiment["average_latency_ms"],
@@ -42,10 +34,7 @@ def evaluate_gates(
         },
     }
 
-    failures = [
-        name for name, check in checks.items()
-        if not check["passed"]
-    ]
+    failures = [name for name, check in checks.items() if not check["passed"]]
 
     return {
         "approved": not failures,

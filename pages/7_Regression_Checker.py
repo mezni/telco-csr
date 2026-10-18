@@ -79,10 +79,7 @@ if result:
     st.dataframe(rows, hide_index=True, width="stretch")
 
     if result["regressions"]:
-        st.warning(
-            "Regressions detected: "
-            + ", ".join(result["regressions"])
-        )
+        st.warning("Regressions detected: " + ", ".join(result["regressions"]))
     else:
         st.success("No regressions detected in the tracked metrics.")
 

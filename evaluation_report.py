@@ -1,4 +1,3 @@
-
 from datetime import UTC, datetime
 
 from cost_analysis import analyze_experiment
@@ -74,8 +73,10 @@ def build_evaluation_report(
         f"| Median latency | {performance['median_latency_ms']:.2f} ms |",
         f"| P95 latency | {performance['p95_latency_ms']:.2f} ms |",
         "",
-        ("> Cost is an estimate based on the configured token rates. "
-        "It excludes other possible provider, hosting, and tool charges."),
+        (
+            "> Cost is an estimate based on the configured token rates. "
+            "It excludes other possible provider, hosting, and tool charges."
+        ),
         "",
         "## 3. Evaluation Gates",
         "",
@@ -106,20 +107,22 @@ def build_evaluation_report(
             "",
             "## 4. Error Analysis",
             "",
-            (f"- Tickets with at least one incorrect field: "
-            f"{error_result['error_count']} / {error_result['ticket_count']}"),
+            (
+                f"- Tickets with at least one incorrect field: "
+                f"{error_result['error_count']} / {error_result['ticket_count']}"
+            ),
             "",
             "### Results by expected category",
             "",
-            ("| Category | Tickets | Category accuracy | Order ID accuracy | "
-            "Lookup accuracy | Overall field accuracy |"),
+            (
+                "| Category | Tickets | Category accuracy | Order ID accuracy | "
+                "Lookup accuracy | Overall field accuracy |"
+            ),
             "|---|---:|---:|---:|---:|---:|",
         ]
     )
 
-    for category, stats in sorted(
-        error_result["category_summary"].items()
-    ):
+    for category, stats in sorted(error_result["category_summary"].items()):
         lines.append(
             f"| {category} | {stats['ticket_count']} | "
             f"{stats['category_accuracy']:.1%} | "
@@ -133,19 +136,17 @@ def build_evaluation_report(
     if error_result["errors"]:
         lines.extend(
             [
-                ("| Ticket ID | Expected category | Predicted category | "
-                "Parse error |"),
+                (
+                    "| Ticket ID | Expected category | Predicted category | "
+                    "Parse error |"
+                ),
                 "|---|---|---|---|",
             ]
         )
 
         for item in error_result["errors"]:
-            expected_category = item.get("expected", {}).get(
-                "category", "unknown"
-            )
-            predicted_category = item.get("predicted", {}).get(
-                "category", "missing"
-            )
+            expected_category = item.get("expected", {}).get("category", "unknown")
+            predicted_category = item.get("predicted", {}).get("category", "missing")
             parse_error = item.get("parse_error") or "None"
 
             lines.append(
@@ -174,22 +175,24 @@ def build_evaluation_report(
             ]
         )
     else:
-        lines.append(
-            "No reproducibility manifest was saved for this experiment."
-        )
+        lines.append("No reproducibility manifest was saved for this experiment.")
 
     lines.extend(
         [
             "",
             "## 6. Readiness Assessment",
             "",
-            (f"- Configured evaluation gates: "
-            f"{'passed' if gate_result['approved'] else 'not all passed'}."),
+            (
+                f"- Configured evaluation gates: "
+                f"{'passed' if gate_result['approved'] else 'not all passed'}."
+            ),
             "- Review incorrect predictions before changing prompts or thresholds.",
             "- Confirm the dataset represents real ticket categories and edge cases.",
             "- Validate category definitions and order-lookup business rules with stakeholders.",
-            ("- Test security, privacy, monitoring, failure handling, and human approval "
-            "before production use."),
+            (
+                "- Test security, privacy, monitoring, failure handling, and human approval "
+                "before production use."
+            ),
             "- Treat this report as evaluation evidence, not as automatic deployment approval.",
             "",
             "## 7. Evaluation Configuration",
@@ -203,4 +206,3 @@ def build_evaluation_report(
     )
 
     return "\n".join(lines)
-

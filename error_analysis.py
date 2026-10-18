@@ -29,9 +29,7 @@ def analyze_errors(details: list[dict]) -> dict:
         order_id_correct = bool(scores.get("order_id_correct", False))
         lookup_correct = bool(scores.get("lookup_correct", False))
 
-        fully_correct = (
-            category_correct and order_id_correct and lookup_correct
-        )
+        fully_correct = category_correct and order_id_correct and lookup_correct
 
         stats["ticket_count"] += 1
         stats["category_correct"] += int(category_correct)
@@ -46,17 +44,11 @@ def analyze_errors(details: list[dict]) -> dict:
                     "id": item.get("id", "unknown"),
                     "ticket": item.get("ticket", ""),
                     "expected_category": category,
-                    "predicted_category": predicted.get(
-                        "category", "missing"
-                    ),
+                    "predicted_category": predicted.get("category", "missing"),
                     "expected_order_id": expected.get("order_id"),
                     "predicted_order_id": predicted.get("order_id"),
-                    "expected_lookup": expected.get(
-                        "needs_order_lookup"
-                    ),
-                    "predicted_lookup": predicted.get(
-                        "needs_order_lookup"
-                    ),
+                    "expected_lookup": expected.get("needs_order_lookup"),
+                    "predicted_lookup": predicted.get("needs_order_lookup"),
                     "category_correct": category_correct,
                     "order_id_correct": order_id_correct,
                     "lookup_correct": lookup_correct,
@@ -78,7 +70,8 @@ def analyze_errors(details: list[dict]) -> dict:
                 stats["category_correct"]
                 + stats["order_id_correct"]
                 + stats["lookup_correct"]
-            ) / (count * 3),
+            )
+            / (count * 3),
         }
 
     return {

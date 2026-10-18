@@ -1,4 +1,3 @@
-
 import pandas as pd
 import streamlit as st
 from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
@@ -59,7 +58,15 @@ st.info(
 
 try:
     experiments = list_experiments(limit=100)
-except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+except (
+    APIError,
+    AuthenticationError,
+    OpenAIError,
+    RateLimitError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+) as exc:
     st.error(f"Could not load experiments: {exc}")
     st.stop()
 
@@ -86,7 +93,15 @@ selected_id = labels[selected_label]
 
 try:
     experiment = get_experiment(selected_id)
-except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+except (
+    APIError,
+    AuthenticationError,
+    OpenAIError,
+    RateLimitError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+) as exc:
     st.error(f"Could not load experiment details: {exc}")
     st.stop()
 
@@ -243,4 +258,3 @@ st.markdown(
       classification quality or produces invalid JSON.
     """
 )
-

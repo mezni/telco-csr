@@ -1,4 +1,3 @@
-
 import os
 import time
 
@@ -8,9 +7,7 @@ from openai import OpenAI
 load_dotenv()
 
 if not os.getenv("OPENAI_API_KEY"):
-    raise RuntimeError(
-        "OPENAI_API_KEY is missing. Add it to your .env file."
-    )
+    raise RuntimeError("OPENAI_API_KEY is missing. Add it to your .env file.")
 
 client = OpenAI()
 
@@ -55,4 +52,3 @@ print(response.output_text)
 print("\n=== RUN METRICS ===")
 for name, value in metrics.items():
     print(f"{name}: {value}")
-

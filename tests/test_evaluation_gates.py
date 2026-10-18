@@ -23,18 +23,14 @@ def test_approves_experiment_that_passes_all_gates():
 
 
 def test_rejects_experiment_with_low_accuracy():
-    result = evaluate_gates(
-        make_experiment(overall_accuracy=0.70)
-    )
+    result = evaluate_gates(make_experiment(overall_accuracy=0.70))
 
     assert result["approved"] is False
     assert "overall_accuracy" in result["failures"]
 
 
 def test_rejects_experiment_with_high_latency():
-    result = evaluate_gates(
-        make_experiment(latency_ms=2500.0)
-    )
+    result = evaluate_gates(make_experiment(latency_ms=2500.0))
 
     assert result["approved"] is False
     assert "latency" in result["failures"]

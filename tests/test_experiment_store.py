@@ -1,4 +1,3 @@
-
 import experiment_store
 
 
@@ -62,4 +61,3 @@ def test_save_and_retrieve_experiment(tmp_path, monkeypatch):
     history = experiment_store.list_experiments()
     assert len(history) == 1
     assert history[0]["id"] == experiment_id
-

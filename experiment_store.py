@@ -1,4 +1,3 @@
-
 import json
 import sqlite3
 from datetime import UTC, datetime
@@ -35,20 +34,16 @@ CREATE TABLE IF NOT EXISTS experiments (
 
 MIGRATIONS = {
     "prompt_name": (
-        "ALTER TABLE experiments "
-        "ADD COLUMN prompt_name TEXT NOT NULL DEFAULT 'unnamed'"
+        "ALTER TABLE experiments ADD COLUMN prompt_name TEXT NOT NULL DEFAULT 'unnamed'"
     ),
     "prompt_version": (
-        "ALTER TABLE experiments "
-        "ADD COLUMN prompt_version TEXT NOT NULL DEFAULT 'v1'"
+        "ALTER TABLE experiments ADD COLUMN prompt_version TEXT NOT NULL DEFAULT 'v1'"
     ),
     "prompt_hash": (
-        "ALTER TABLE experiments "
-        "ADD COLUMN prompt_hash TEXT NOT NULL DEFAULT ''"
+        "ALTER TABLE experiments ADD COLUMN prompt_hash TEXT NOT NULL DEFAULT ''"
     ),
     "manifest_json": (
-        "ALTER TABLE experiments "
-        "ADD COLUMN manifest_json TEXT NOT NULL DEFAULT '{}'"
+        "ALTER TABLE experiments ADD COLUMN manifest_json TEXT NOT NULL DEFAULT '{}'"
     ),
 }
 
@@ -69,9 +64,7 @@ def initialize_database() -> None:
 
         existing_columns = {
             row["name"]
-            for row in connection.execute(
-                "PRAGMA table_info(experiments)"
-            ).fetchall()
+            for row in connection.execute("PRAGMA table_info(experiments)").fetchall()
         }
 
         for column_name, migration_sql in MIGRATIONS.items():
@@ -192,12 +185,7 @@ def get_experiment(experiment_id: int) -> dict[str, Any] | None:
         return None
 
     experiment = dict(row)
-    experiment["details"] = json.loads(
-        experiment.pop("details_json", "[]") or "[]"
-    )
-    experiment["manifest"] = json.loads(
-        experiment.pop("manifest_json", "{}") or "{}"
-    )
+    experiment["details"] = json.loads(experiment.pop("details_json", "[]") or "[]")
+    experiment["manifest"] = json.loads(experiment.pop("manifest_json", "{}") or "{}")
 
     return experiment
-

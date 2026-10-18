@@ -44,15 +44,11 @@ def validate_dataset(dataset: list[dict]) -> list[str]:
             errors.append(f"{location}: invalid category '{category}'.")
 
         if order_id is not None and (
-            isinstance(order_id, bool)
-            or not isinstance(order_id, int)
-            or order_id <= 0
+            isinstance(order_id, bool) or not isinstance(order_id, int) or order_id <= 0
         ):
             errors.append(f"{location}: order_id must be a positive integer or null.")
 
         if not isinstance(needs_lookup, bool):
-            errors.append(
-                f"{location}: needs_order_lookup must be true or false."
-            )
+            errors.append(f"{location}: needs_order_lookup must be true or false.")
 
     return errors

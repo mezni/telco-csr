@@ -1,4 +1,3 @@
-
 import time
 
 import streamlit as st
@@ -42,4 +41,3 @@ if "result" in st.session_state:
         "Execution time measures local Python processing only. "
         "It does not include network or LLM latency."
     )
-

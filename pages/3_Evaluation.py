@@ -1,4 +1,3 @@
-
 import json
 from pathlib import Path
 
@@ -39,7 +38,7 @@ if st.button("Run evaluation", type="primary"):
 
     try:
         for index, item in enumerate(tickets):
-            status.write(f'Evaluating {item["id"]}: {item["ticket"]}')
+            status.write(f"Evaluating {item['id']}: {item['ticket']}")
 
             run = run_inference(
                 ticket=item["ticket"],
@@ -61,16 +60,18 @@ if st.button("Run evaluation", type="primary"):
                 parse_error = "Model response was not valid JSON."
 
             results.append(scores)
-            details.append({
-                "id": item["id"],
-                "ticket": item["ticket"],
-                "expected": item["expected"],
-                "predicted": predicted,
-                "scores": scores,
-                "latency_ms": run["latency_ms"],
-                "total_tokens": run["total_tokens"],
-                "parse_error": parse_error,
-            })
+            details.append(
+                {
+                    "id": item["id"],
+                    "ticket": item["ticket"],
+                    "expected": item["expected"],
+                    "predicted": predicted,
+                    "scores": scores,
+                    "latency_ms": run["latency_ms"],
+                    "total_tokens": run["total_tokens"],
+                    "parse_error": parse_error,
+                }
+            )
 
             progress.progress((index + 1) / len(tickets))
 
@@ -79,7 +80,15 @@ if st.button("Run evaluation", type="primary"):
         st.session_state["evaluation_model"] = model.strip()
         status.success("Evaluation completed.")
 
-    except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+    except (
+        APIError,
+        AuthenticationError,
+        OpenAIError,
+        RateLimitError,
+        RuntimeError,
+        ValueError,
+        TypeError,
+    ) as exc:
         status.error(f"Evaluation failed: {exc}")
 
 summary = st.session_state.get("evaluation_summary")
@@ -89,24 +98,24 @@ if summary is not None:
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Tickets", summary["ticket_count"])
-    c2.metric("Category accuracy", f'{summary["category_accuracy"]:.0%}')
-    c3.metric("Order ID accuracy", f'{summary["order_id_accuracy"]:.0%}')
-    c4.metric("Lookup accuracy", f'{summary["lookup_accuracy"]:.0%}')
+    c2.metric("Category accuracy", f"{summary['category_accuracy']:.0%}")
+    c3.metric("Order ID accuracy", f"{summary['order_id_accuracy']:.0%}")
+    c4.metric("Lookup accuracy", f"{summary['lookup_accuracy']:.0%}")
 
     st.metric(
         "Overall field accuracy",
-        f'{summary["overall_field_accuracy"]:.1%}',
+        f"{summary['overall_field_accuracy']:.1%}",
     )
 
     st.caption(
-        f'Model: {st.session_state["evaluation_model"]}. '
+        f"Model: {st.session_state['evaluation_model']}. "
         "Overall field accuracy weights the three fields equally."
     )
 
     st.subheader("Ticket-by-ticket results")
 
     for item in st.session_state["evaluation_details"]:
-        with st.expander(f'{item["id"]}: {item["ticket"]}'):
+        with st.expander(f"{item['id']}: {item['ticket']}"):
             st.write("Expected")
             st.json(item["expected"])
             st.write("Predicted")
@@ -114,9 +123,8 @@ if summary is not None:
             st.write("Field scores")
             st.json(item["scores"])
 
-            st.write(f'Latency: {item["latency_ms"]:.2f} ms')
-            st.write(f'Total tokens: {item["total_tokens"]}')
+            st.write(f"Latency: {item['latency_ms']:.2f} ms")
+            st.write(f"Total tokens: {item['total_tokens']}")
 
             if item["parse_error"]:
                 st.warning(item["parse_error"])
-

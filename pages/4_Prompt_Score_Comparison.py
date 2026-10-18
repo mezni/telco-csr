@@ -1,4 +1,3 @@
-
 import pandas as pd
 import streamlit as st
 from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
@@ -150,7 +149,15 @@ if st.button("Run and save comparison", type="primary"):
             f"A = {experiment_id_a}, B = {experiment_id_b}."
         )
 
-    except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+    except (
+        APIError,
+        AuthenticationError,
+        OpenAIError,
+        RateLimitError,
+        RuntimeError,
+        ValueError,
+        TypeError,
+    ) as exc:
         st.error(f"Comparison failed: {exc}")
 
 
@@ -187,8 +194,7 @@ if comparison:
             "Prompt A": summary_a["category_accuracy"],
             "Prompt B": summary_b["category_accuracy"],
             "Difference (B - A)": (
-                summary_b["category_accuracy"]
-                - summary_a["category_accuracy"]
+                summary_b["category_accuracy"] - summary_a["category_accuracy"]
             ),
             "Direction": "Higher is better",
         },
@@ -197,8 +203,7 @@ if comparison:
             "Prompt A": summary_a["order_id_accuracy"],
             "Prompt B": summary_b["order_id_accuracy"],
             "Difference (B - A)": (
-                summary_b["order_id_accuracy"]
-                - summary_a["order_id_accuracy"]
+                summary_b["order_id_accuracy"] - summary_a["order_id_accuracy"]
             ),
             "Direction": "Higher is better",
         },
@@ -207,8 +212,7 @@ if comparison:
             "Prompt A": summary_a["lookup_accuracy"],
             "Prompt B": summary_b["lookup_accuracy"],
             "Difference (B - A)": (
-                summary_b["lookup_accuracy"]
-                - summary_a["lookup_accuracy"]
+                summary_b["lookup_accuracy"] - summary_a["lookup_accuracy"]
             ),
             "Direction": "Higher is better",
         },
@@ -227,8 +231,7 @@ if comparison:
             "Prompt A": result_a["average_latency_ms"],
             "Prompt B": result_b["average_latency_ms"],
             "Difference (B - A)": (
-                result_b["average_latency_ms"]
-                - result_a["average_latency_ms"]
+                result_b["average_latency_ms"] - result_a["average_latency_ms"]
             ),
             "Direction": "Lower is better",
         },
@@ -237,8 +240,7 @@ if comparison:
             "Prompt A": result_a["total_input_tokens"],
             "Prompt B": result_b["total_input_tokens"],
             "Difference (B - A)": (
-                result_b["total_input_tokens"]
-                - result_a["total_input_tokens"]
+                result_b["total_input_tokens"] - result_a["total_input_tokens"]
             ),
             "Direction": "Lower is generally cheaper",
         },
@@ -247,8 +249,7 @@ if comparison:
             "Prompt A": result_a["total_output_tokens"],
             "Prompt B": result_b["total_output_tokens"],
             "Difference (B - A)": (
-                result_b["total_output_tokens"]
-                - result_a["total_output_tokens"]
+                result_b["total_output_tokens"] - result_a["total_output_tokens"]
             ),
             "Direction": "Lower is generally cheaper",
         },
@@ -263,12 +264,8 @@ if comparison:
     # Per-ticket comparison
     st.subheader("Per-ticket results")
 
-    details_a = {
-        item["id"]: item for item in result_a.get("details", [])
-    }
-    details_b = {
-        item["id"]: item for item in result_b.get("details", [])
-    }
+    details_a = {item["id"]: item for item in result_a.get("details", [])}
+    details_b = {item["id"]: item for item in result_b.get("details", [])}
 
     ticket_rows = []
 
@@ -285,17 +282,11 @@ if comparison:
             {
                 "Ticket ID": ticket_id,
                 "Ticket": item_a.get("ticket", item_b.get("ticket", "")),
-                "Expected category": item_a.get("expected", {}).get(
-                    "category", ""
-                ),
+                "Expected category": item_a.get("expected", {}).get("category", ""),
                 "A category": predicted_a.get("category", "INVALID"),
                 "B category": predicted_b.get("category", "INVALID"),
-                "A category correct": scores_a.get(
-                    "category_correct", False
-                ),
-                "B category correct": scores_b.get(
-                    "category_correct", False
-                ),
+                "A category correct": scores_a.get("category_correct", False),
+                "B category correct": scores_b.get("category_correct", False),
                 "A order ID": predicted_a.get("order_id"),
                 "B order ID": predicted_b.get("order_id"),
                 "A lookup correct": scores_a.get("lookup_correct", False),
@@ -319,4 +310,3 @@ if comparison:
 
     with st.expander("Prompt B manifest"):
         st.json(comparison["manifest_b"])
-

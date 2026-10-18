@@ -16,10 +16,7 @@ st.caption("Compare saved LLM experiments without making new API calls.")
 experiments = list_experiments(limit=100)
 
 if not experiments:
-    st.info(
-        "No experiments saved yet. "
-        "Run a prompt comparison first."
-    )
+    st.info("No experiments saved yet. Run a prompt comparison first.")
     st.stop()
 
 rows = prepare_dashboard_data(experiments)
@@ -62,17 +59,13 @@ st.line_chart(accuracy_chart, width="stretch")
 
 st.subheader("Latency over experiments")
 
-latency_chart = df.set_index("Experiment")[
-    ["Average latency (ms)"]
-]
+latency_chart = df.set_index("Experiment")[["Average latency (ms)"]]
 
 st.line_chart(latency_chart, width="stretch")
 
 st.subheader("Token usage")
 
-token_chart = df.set_index("Experiment")[
-    ["Input tokens", "Output tokens"]
-]
+token_chart = df.set_index("Experiment")[["Input tokens", "Output tokens"]]
 
 st.bar_chart(token_chart, width="stretch")
 

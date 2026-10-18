@@ -1,4 +1,3 @@
-
 import streamlit as st
 from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
@@ -43,7 +42,15 @@ if st.button("Run inference", type="primary"):
                     model=model.strip(),
                 )
             st.session_state["llm_result"] = result
-        except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+        except (
+            APIError,
+            AuthenticationError,
+            OpenAIError,
+            RateLimitError,
+            RuntimeError,
+            ValueError,
+            TypeError,
+        ) as exc:
             st.error(f"Inference failed: {exc}")
 
 result = st.session_state.get("llm_result")
@@ -55,11 +62,10 @@ if result:
     st.subheader("Run metrics")
     c1, c2, c3, c4 = st.columns(4)
 
-    c1.metric("Latency", f'{result["latency_ms"]:.2f} ms')
+    c1.metric("Latency", f"{result['latency_ms']:.2f} ms")
     c2.metric("Input tokens", result["input_tokens"])
     c3.metric("Output tokens", result["output_tokens"])
     c4.metric("Total tokens", result["total_tokens"])
 
-    st.caption(f'Model requested: {result["model"]}')
+    st.caption(f"Model requested: {result['model']}")
     st.json(result)
-

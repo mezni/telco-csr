@@ -98,17 +98,12 @@ if saved_result:
     result = saved_result["result"]
 
     st.divider()
-    st.subheader(
-        f"Gate results for experiment #{saved_result['experiment_id']}"
-    )
+    st.subheader(f"Gate results for experiment #{saved_result['experiment_id']}")
 
     if result["approved"]:
         st.success("All configured evaluation gates passed.")
     else:
-        st.error(
-            "Evaluation rejected. Failed gates: "
-            + ", ".join(result["failures"])
-        )
+        st.error("Evaluation rejected. Failed gates: " + ", ".join(result["failures"]))
 
     rows = []
 

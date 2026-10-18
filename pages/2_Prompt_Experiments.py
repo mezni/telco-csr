@@ -1,4 +1,3 @@
-
 import streamlit as st
 from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
@@ -10,9 +9,7 @@ st.set_page_config(
 )
 
 st.title("Prompt Experiment Lab")
-st.caption(
-    "Compare two system prompts with the same model and input."
-)
+st.caption("Compare two system prompts with the same model and input.")
 
 model = st.text_input("Model", value=DEFAULT_MODEL)
 
@@ -23,10 +20,7 @@ ticket = st.text_area(
 
 prompt_a = st.text_area(
     "Prompt A — baseline",
-    value=(
-        "Classify this telecom support ticket into a category "
-        "and explain why."
-    ),
+    value=("Classify this telecom support ticket into a category and explain why."),
     height=180,
 )
 
@@ -72,7 +66,15 @@ if st.button("Run A/B comparison", type="primary"):
                 "result_a": result_a,
                 "result_b": result_b,
             }
-        except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+        except (
+            APIError,
+            AuthenticationError,
+            OpenAIError,
+            RateLimitError,
+            RuntimeError,
+            ValueError,
+            TypeError,
+        ) as exc:
             st.error(f"Comparison failed: {exc}")
 
 comparison = st.session_state.get("prompt_comparison")
@@ -91,7 +93,7 @@ if comparison:
         with col:
             st.markdown(f"### {label}")
             st.write(result["response"])
-            st.metric("Latency", f'{result["latency_ms"]:.2f} ms')
+            st.metric("Latency", f"{result['latency_ms']:.2f} ms")
 
             m1, m2 = st.columns(2)
             m1.metric("Input tokens", result["input_tokens"])
@@ -99,7 +101,6 @@ if comparison:
 
     a = comparison["result_a"]
     b = comparison["result_b"]
-
 
     st.subheader("Metric comparison")
 
@@ -111,8 +112,8 @@ if comparison:
         },
         {
             "Metric": "Latency (ms)",
-            "Prompt A": f'{a["latency_ms"]:.2f}',
-            "Prompt B": f'{b["latency_ms"]:.2f}',
+            "Prompt A": f"{a['latency_ms']:.2f}",
+            "Prompt B": f"{b['latency_ms']:.2f}",
         },
         {
             "Metric": "Input tokens",
@@ -143,4 +144,3 @@ if comparison:
         "These are two individual runs. Latency varies between requests; "
         "one comparison does not establish which prompt is consistently better."
     )
-

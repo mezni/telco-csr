@@ -1,4 +1,3 @@
-
 import pandas as pd
 import streamlit as st
 from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
@@ -23,7 +22,15 @@ st.write(
 
 try:
     experiments = list_experiments(limit=100)
-except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+except (
+    APIError,
+    AuthenticationError,
+    OpenAIError,
+    RateLimitError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+) as exc:
     st.error(f"Could not load experiment history: {exc}")
     st.stop()
 
@@ -90,7 +97,15 @@ selected_id = experiment_options[selected_label]
 
 try:
     experiment = get_experiment(selected_id)
-except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+except (
+    APIError,
+    AuthenticationError,
+    OpenAIError,
+    RateLimitError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+) as exc:
     st.error(f"Could not load experiment #{selected_id}: {exc}")
     st.stop()
 
@@ -105,10 +120,7 @@ if experiment is None:
 st.divider()
 st.header(f"Experiment #{experiment['id']}")
 
-st.caption(
-    f"Created: {experiment['created_at']} | "
-    f"Model: {experiment['model']}"
-)
+st.caption(f"Created: {experiment['created_at']} | Model: {experiment['model']}")
 
 metadata_col1, metadata_col2, metadata_col3 = st.columns(3)
 
@@ -202,13 +214,10 @@ if manifest:
         if manifest_prompt_hash == stored_prompt_hash:
             st.success("Manifest prompt hash matches the stored prompt hash.")
         else:
-            st.warning(
-                "The manifest prompt hash differs from the stored prompt hash."
-            )
+            st.warning("The manifest prompt hash differs from the stored prompt hash.")
 else:
     st.info(
-        "This experiment predates reproducibility metadata or has no "
-        "manifest saved."
+        "This experiment predates reproducibility metadata or has no manifest saved."
     )
 
 # -------------------------------------------------------------------
@@ -309,4 +318,3 @@ st.download_button(
     file_name=f"experiment_{experiment['id']}.json",
     mime="application/json",
 )
-

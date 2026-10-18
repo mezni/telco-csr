@@ -59,10 +59,12 @@ def test_detects_field_level_errors():
 
 
 def test_counts_fully_correct_tickets():
-    result = analyze_errors([
-        make_detail("T001", "billing"),
-        make_detail("T002", "billing", lookup_correct=False),
-    ])
+    result = analyze_errors(
+        [
+            make_detail("T001", "billing"),
+            make_detail("T002", "billing", lookup_correct=False),
+        ]
+    )
 
     billing = result["category_summary"]["billing"]
 

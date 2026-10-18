@@ -1,4 +1,3 @@
-
 import streamlit as st
 from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
@@ -19,7 +18,15 @@ st.write(
 
 try:
     experiments = list_experiments(limit=100)
-except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+except (
+    APIError,
+    AuthenticationError,
+    OpenAIError,
+    RateLimitError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+) as exc:
     st.error(f"Could not load experiment history: {exc}")
     st.stop()
 
@@ -46,7 +53,15 @@ selected_id = experiment_options[selected_label]
 
 try:
     experiment = get_experiment(selected_id)
-except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+except (
+    APIError,
+    AuthenticationError,
+    OpenAIError,
+    RateLimitError,
+    RuntimeError,
+    ValueError,
+    TypeError,
+) as exc:
     st.error(f"Could not load experiment: {exc}")
     st.stop()
 
@@ -127,13 +142,19 @@ if st.button("Generate report", type="primary"):
         st.session_state["evaluation_report"] = report
         st.session_state["evaluation_report_experiment_id"] = selected_id
 
-    except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
+    except (
+        APIError,
+        AuthenticationError,
+        OpenAIError,
+        RateLimitError,
+        RuntimeError,
+        ValueError,
+        TypeError,
+    ) as exc:
         st.error(f"Could not generate report: {exc}")
 
 report = st.session_state.get("evaluation_report")
-report_experiment_id = st.session_state.get(
-    "evaluation_report_experiment_id"
-)
+report_experiment_id = st.session_state.get("evaluation_report_experiment_id")
 
 if report and report_experiment_id == selected_id:
     st.divider()
@@ -147,4 +168,3 @@ if report and report_experiment_id == selected_id:
         file_name=f"ticket_triage_evaluation_{selected_id}.md",
         mime="text/markdown",
     )
-

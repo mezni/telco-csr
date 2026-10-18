@@ -79,15 +79,9 @@ if saved:
                 {
                     "Category": category,
                     "Tickets": stats["ticket_count"],
-                    "Category accuracy": (
-                        f"{stats['category_accuracy']:.1%}"
-                    ),
-                    "Order ID accuracy": (
-                        f"{stats['order_id_accuracy']:.1%}"
-                    ),
-                    "Lookup accuracy": (
-                        f"{stats['lookup_accuracy']:.1%}"
-                    ),
+                    "Category accuracy": (f"{stats['category_accuracy']:.1%}"),
+                    "Order ID accuracy": (f"{stats['order_id_accuracy']:.1%}"),
+                    "Lookup accuracy": (f"{stats['lookup_accuracy']:.1%}"),
                     "Overall field accuracy": (
                         f"{stats['overall_field_accuracy']:.1%}"
                     ),
@@ -151,9 +145,7 @@ if saved:
         st.markdown("### Review individual errors")
 
         for error in analysis["errors"]:
-            with st.expander(
-                f"{error['id']} — {error['expected_category']}"
-            ):
+            with st.expander(f"{error['id']} — {error['expected_category']}"):
                 st.write("**Customer message:**", error["ticket"])
                 st.write(
                     "**Expected:**",

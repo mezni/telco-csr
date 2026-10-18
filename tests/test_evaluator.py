@@ -1,4 +1,3 @@
-
 from evaluator import score_prediction, summarize_scores
 
 
@@ -66,4 +65,3 @@ def test_empty_results():
 
     assert summary["ticket_count"] == 0
     assert summary["overall_field_accuracy"] == 0.0
-

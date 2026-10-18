@@ -1,4 +1,3 @@
-
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
@@ -36,4 +35,3 @@ def test_run_inference_returns_response_and_metrics():
     assert result["latency_ms"] >= 0
 
     fake_client.responses.create.assert_called_once()
-
