@@ -1,5 +1,6 @@
 
 import streamlit as st
+from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
 from llm_service import DEFAULT_MODEL, run_inference
 
@@ -71,7 +72,7 @@ if st.button("Run A/B comparison", type="primary"):
                 "result_a": result_a,
                 "result_b": result_b,
             }
-        except Exception as exc:
+        except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
             st.error(f"Comparison failed: {exc}")
 
 comparison = st.session_state.get("prompt_comparison")

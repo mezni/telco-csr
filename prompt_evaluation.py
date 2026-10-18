@@ -5,7 +5,6 @@ from pathlib import Path
 from evaluator import score_prediction, summarize_scores
 from llm_service import run_inference
 
-
 DATASET_PATH = (
     Path(__file__).resolve().parent
     / "data"

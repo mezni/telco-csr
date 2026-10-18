@@ -1,7 +1,7 @@
 
 import json
 import sqlite3
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 DB_PATH = Path(__file__).resolve().parent / "data" / "experiments.db"
@@ -62,7 +62,7 @@ def save_experiment(prompt: str, result: dict) -> int:
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                datetime.now(timezone.utc).isoformat(),
+                datetime.now(UTC).isoformat(),
                 result["model"],
                 prompt,
                 result["ticket_count"],

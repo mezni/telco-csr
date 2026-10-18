@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 import streamlit as st
+from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
 from evaluator import score_prediction, summarize_scores
 from llm_service import DEFAULT_MODEL, run_inference
@@ -78,7 +79,7 @@ if st.button("Run evaluation", type="primary"):
         st.session_state["evaluation_model"] = model.strip()
         status.success("Evaluation completed.")
 
-    except Exception as exc:
+    except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
         status.error(f"Evaluation failed: {exc}")
 
 summary = st.session_state.get("evaluation_summary")

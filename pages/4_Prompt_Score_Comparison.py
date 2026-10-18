@@ -1,6 +1,7 @@
-from experiment_store import save_experiment
 import streamlit as st
+from openai import APIError, AuthenticationError, OpenAIError, RateLimitError
 
+from experiment_store import save_experiment
 from llm_service import DEFAULT_MODEL
 from prompt_evaluation import run_prompt_evaluation
 
@@ -72,7 +73,7 @@ if st.button("Evaluate both prompts", type="primary"):
             }
             st.success("Comparison completed.")
 
-        except Exception as exc:
+        except (APIError, AuthenticationError, OpenAIError, RateLimitError, RuntimeError, ValueError, TypeError) as exc:
             st.error(f"Evaluation failed: {exc}")
 
 comparison = st.session_state.get("score_comparison")
