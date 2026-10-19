@@ -23,6 +23,16 @@ class ExecutionBudget:
         ):
             raise ValueError("max_requests must be a positive integer.")
 
+        import math
+
+        if not isinstance(self.deadline_seconds, (int, float)) or isinstance(
+            self.deadline_seconds, bool
+        ):
+            raise ValueError("deadline_seconds must be positive.")
+
+        if math.isinf(self.deadline_seconds) or math.isnan(self.deadline_seconds):
+            raise ValueError("deadline_seconds must be positive.")
+
         if self.deadline_seconds <= 0:
             raise ValueError("deadline_seconds must be positive.")
 

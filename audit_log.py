@@ -47,7 +47,7 @@ def log_event(
     event_details = details or {}
 
     if not isinstance(event_details, dict):
-        raise TypeError("details must be a dictionary.")
+        raise ValueError("details must be a dictionary.")
 
     # Validate that details can be serialized before writing.
     details_json = json.dumps(event_details, sort_keys=True)

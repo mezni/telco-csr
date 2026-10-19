@@ -12,7 +12,6 @@ from config import load_settings
 from errors import InferenceError
 from execution_budget import BudgetExceededError, ExecutionBudget
 
-
 TRANSIENT_STATUS_CODES = {408, 409, 429, 500, 502, 503, 504}
 
 

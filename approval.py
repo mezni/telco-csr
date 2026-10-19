@@ -1,4 +1,5 @@
 from typing import Any
+
 from audit_log import log_event
 
 VALID_DECISIONS = {"approve", "reject"}
@@ -23,7 +24,7 @@ def decide_approval(
     classification = agent_result.get("classification")
 
     if not isinstance(classification, dict):
-        raise TypeError("A valid classification is required for approval.")
+        raise ValueError("A valid classification is required for approval.")
 
     if decision == "approve":
         status = "approved"
@@ -31,7 +32,7 @@ def decide_approval(
         status = "rejected"
 
     log_event(
-        ticket_id=agent_result["ticket_id"],
+        ticket_id=agent_result.get("ticket_id") or agent_result.get("ticket") or "",
         event_type=(
             "approval_granted" if decision == "approve" else "approval_rejected"
         ),

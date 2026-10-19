@@ -3,7 +3,6 @@ import json
 import ticket_classifier
 from errors import InferenceError
 
-
 VALID_CLASSIFICATION = {
     "category": "order_status",
     "order_id": 4821,

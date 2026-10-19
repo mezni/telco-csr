@@ -9,7 +9,6 @@ from execution_budget import ExecutionBudget
 from llm_service import run_inference
 from ticket_schema import validate_classification
 
-
 CLASSIFIER_SYSTEM_PROMPT = """
 Classify the support ticket.
 
@@ -70,8 +69,10 @@ def classify_ticket(
 
     last_error = "The model returned invalid output."
     last_raw_response = None
+    attempts_made = 0
 
     for attempt in range(1, max_attempts + 1):
+        attempts_made = attempt
         try:
             inference = run_inference(
                 ticket,
@@ -92,7 +93,14 @@ def classify_ticket(
                 "status_code": exc.status_code,
             }
 
-        except Exception:
+        except RuntimeError:
+            # Transient provider failures are retried within the attempt budget.
+            last_error = "Temporary provider failure."
+            if budget.remaining_seconds <= 0:
+                break
+            continue
+
+        except Exception:  # noqa: BLE001
             # Do not blindly retry unexpected programming or provider errors.
             return {
                 "status": "inference_error",
@@ -146,6 +154,6 @@ def classify_ticket(
         "classification": None,
         "error": last_error,
         "raw_response": last_raw_response,
-        "attempt_count": min(max_attempts, budget.requests_used),
+        "attempt_count": attempts_made,
         "provider_attempts": budget.requests_used,
     }

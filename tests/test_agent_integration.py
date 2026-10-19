@@ -5,7 +5,6 @@ import ticket_classifier
 from agent import process_ticket
 from approval import decide_approval
 
-
 TICKET = "My order #4821 has not arrived."
 
 VALID_CLASSIFICATION = {

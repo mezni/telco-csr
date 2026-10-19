@@ -1,7 +1,7 @@
 import argparse
 import json
 import logging
-from typing import Sequence
+from collections.abc import Sequence
 
 from agent import process_ticket
 from approval import decide_approval
@@ -99,7 +99,7 @@ def run_triage(args: argparse.Namespace) -> int:
         return 2
 
     final_result = decide_approval(
-        agent_result=result,
+        result,
         decision=decision,
         reviewer=reviewer,
     )
