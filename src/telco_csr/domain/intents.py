@@ -3,7 +3,6 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 
-# 1. Define the enum for telecom intents
 class TelecomIntent(str, Enum):
     BILLING_INQUIRY = "billing_inquiry"
     TECHNICAL_SUPPORT = "technical_support"
@@ -12,7 +11,6 @@ class TelecomIntent(str, Enum):
     SIM_ACTIVATION = "sim_activation"
 
 
-# 2. Your IntentClassification model
 class IntentClassification(BaseModel):
     intent: TelecomIntent = Field(
         description=(
