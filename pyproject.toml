@@ -1,0 +1,29 @@
+[project]
+name = "telco-csr-agent"
+version = "0.1.0"
+description = "Telecom CSR Billing AI Agent System with LangGraph"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph",
+    "langchain-core",
+    "pydantic",
+    "streamlit",
+    "fastapi",
+    "uvicorn",
+    "python-dotenv",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+ignore = []
