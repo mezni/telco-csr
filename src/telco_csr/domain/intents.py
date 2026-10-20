@@ -4,11 +4,12 @@ from pydantic import BaseModel, Field
 
 
 class TelecomIntent(str, Enum):
-    BILLING_INQUIRY = "billing_inquiry"
-    TECHNICAL_SUPPORT = "technical_support"
-    PLAN_UPGRADE = "plan_upgrade"
-    CANCELLATION = "cancellation"
-    SIM_ACTIVATION = "sim_activation"
+    BILLING_SPIKE = "BILLING_SPIKE"
+    CREDIT_REQUEST = "CREDIT_REQUEST"
+    PAYMENT_EXTENSION = "PAYMENT_EXTENSION"
+    PLAN_CHANGE = "PLAN_CHANGE"
+    GENERAL_FAQ = "GENERAL_FAQ"
+    UNKNOWN = "UNKNOWN"
 
 
 class IntentClassification(BaseModel):
